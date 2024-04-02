@@ -51,9 +51,18 @@ signature corresponde. Cette dernière est moins employée et il ne semble pas e
 
 
 ```java
-AbstractBeanDefinition controllerBeanDefinition = resolveControllerBean();
-controllerBeanDefinition.setMethodOverrides(
+@Component
+public class ControllerReplacer implements MethodReplacer{
+    @Override
+    public Object reimplement(Object obj, Method method, Object[] args) throws Throwable{
+        return executeSparqlquery(findSparqlQuery(method, args));
+    }
 
+}
+/* ... */
+AbstractBeanDefinition controllerBeanDefinition = resolveControllerBean();
+
+controllerBeanDefinition.getMethodOverrides().addOverride(new ReplaceOverride("getCommuneById", "controllerReplacer"));
 controllerBeanDefinition.prepareMethodOverrides();
 
 ```
