@@ -22,11 +22,14 @@ OAS --"OpenApi Generator"--> IController --"Génération souhaitable"--> Impleme
 Sparql --> Implementations
 ``` 
 **exemples de code**
+
 3. Implémentation manuelle typique d'un Controller
+
 4. Systématiser l'écriture
   - Exemple de méthode générique
   - ~~Extensions OpenApi Generator~~
   - Générer l'implémentation au runtime (comme Spring Data)
+
 5. Génération par "injection de méthode"
 
 > A less useful form of **method injection** than lookup method injection is the ability to replace arbitrary methods in a managed bean with another method implementation. [...]
@@ -39,13 +42,25 @@ On remplace donc l'appel à la méthode  par un appel à une méthode avec une s
 de scopes différents. Ce qui peut également se faire grâce à l'AOP (https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html#beans-factory-scopes-other-injection)
 ET qui se fait automatiquement pour les bean type HttpRequest
 
-Noter la limitation avec le component scanning qui ne prend en compte que les classes concrètes. Pour déclencher le mécanisme, il faut explicitement déclarer son bean comme devant être collecté
+Noter la limitation avec le component scanning qui ne prend en compte que les classes concrètes. Pour déclencher le mécanisme, il faut explicitement déclarer son bean comme devant être collecté.
 
 Nous utilisons la version moins courante (Arbitrary Method Replacement) qui permet de complètement remplacer la méthode par une autre séquence de code : il n'est pas nécessaire que la 
 signature corresponde. Cette dernière est moins employée et il ne semble pas exister d'annotation pour la mettre en oeuvre.
 -->
   - Utilisation : AbstractBeanDefinition -> MethodOverride -> ReplaceOverride -> MethodReplacer
 
+
+```java
+AbstractBeanDefinition controllerBeanDefinition = resolveControllerBean();
+controllerBeanDefinition.setMethodOverrides(
+
+controllerBeanDefinition.prepareMethodOverrides();
+
+```
+
+**Ligne de 
+
+6. 
 
 - Conclusion
   - élargissement : la génération de clients, le cache
