@@ -32,7 +32,8 @@ Sparql --> Implementations
 > A less useful form of **method injection** than lookup method injection is the ability to replace arbitrary methods in a managed bean with another method implementation. [...]
 > With XML-based configuration metadata, you can use the replaced-method element to replace an existing method implementation with another, for a deployed bean. [...] A class that implements the **org.springframework.beans.factory.support.MethodReplacer** interface provides the new method definition
 
-<!--L'injection de méthode fonctionne en premier lieu avec l'annotation lookup qui injecte un bean du type retourné par la méthode. Un constructeur du dit bean doit prendre en argument 
+<!--
+L'injection de méthode fonctionne en premier lieu avec l'annotation lookup qui injecte un bean du type retourné par la méthode. Un constructeur du dit bean doit prendre en argument 
 les mêmes paramètres que la méthode : annotation @Lookup. L'appel à la méthode est donc remplacé à l'appel à un constructeur d'un bean de type identique à celui retourné par la méthode. 
 On remplace donc l'appel à la méthode  par un appel à une méthode avec une signature identique (sinon exception levée). l'usage de cette annotation sert à gérer l'injection de beans 
 de scopes différents. Ce qui peut également se faire grâce à l'AOP (https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html#beans-factory-scopes-other-injection)
@@ -43,6 +44,8 @@ Noter la limitation avec le component scanning qui ne prend en compte que les cl
 Nous utilisons la version moins courante (Arbitrary Method Replacement) qui permet de complètement remplacer la méthode par une autre séquence de code : il n'est pas nécessaire que la 
 signature corresponde. Cette dernière est moins employée et il ne semble pas exister d'annotation pour la mettre en oeuvre.
 -->
+  - Utilisation : AbstractBeanDefinition -> MethodOverride -> ReplaceOverride -> MethodReplacer
+
 
 - Conclusion
   - élargissement : la génération de clients, le cache
