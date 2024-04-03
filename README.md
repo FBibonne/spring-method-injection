@@ -31,49 +31,60 @@ Sparql --> Implementations
   - Générer l'implémentation au runtime (comme Spring Data)
 
 5. Génération par "injection de méthode"
+  - Spring introduit le concept d'[Injection de méthode](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-method-injection.html), notamment [_Arbitrary Method Replacement_](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-method-injection.html#beans-factory-arbitrary-method-replacement)
+  - Cela pourrait faire l'affaire ?
 
-> A less useful form of **method injection** than lookup method injection is the ability to replace arbitrary methods in a managed bean with another method implementation. [...]
-> With XML-based configuration metadata, you can use the replaced-method element to replace an existing method implementation with another, for a deployed bean. [...] A class that implements the **org.springframework.beans.factory.support.MethodReplacer** interface provides the new method definition
-
-<!--
-L'injection de méthode fonctionne en premier lieu avec l'annotation lookup qui injecte un bean du type retourné par la méthode. Un constructeur du dit bean doit prendre en argument 
+<!-- 
+L'injection de méthode sert en premier lieu à l'injection de beans de scope prorotype dans un bean de scope singleton si on veut que les  beans de scope prototype soient réinstanciés à chaque appel.
+Spring appelle cela _Lookup Method Injection_ et utilise l'annotation lookup qui injecte un bean du type retourné par la méthode : un constructeur du dit bean doit prendre en argument 
 les mêmes paramètres que la méthode : annotation @Lookup. L'appel à la méthode est donc remplacé à l'appel à un constructeur d'un bean de type identique à celui retourné par la méthode. 
-On remplace donc l'appel à la méthode  par un appel à une méthode avec une signature identique (sinon exception levée). l'usage de cette annotation sert à gérer l'injection de beans 
-de scopes différents. Ce qui peut également se faire grâce à l'AOP (https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html#beans-factory-scopes-other-injection)
-ET qui se fait automatiquement pour les bean type HttpRequest
+On remplace donc l'appel à la méthode  par un appel à une méthode avec une signature identique (sinon exception levée). 
+L'injection de beans de scopes différents peut également se faire grâce à l'AOP (https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html#beans-factory-scopes-other-injection).
+ET se fait automatiquement pour les beans type HttpServletRequest (scope request), HttpSession (scope session).
+
+Un autre aspect de l'injection de méthode proposée par Spring est de permettre le remplacement de l'implémentation d'une méthode par une autre implémentation. Spring appelle cela _Arbitrary method replacement_. La
+documentation ne propose pas de finalité particulière pour cet usage. Il n'est cependant accessible qu'avec une configuration via XML du contexte ou bien en écrivant manuellement les BeanDefinition : 
+`controllerBeanDefinition.getMethodOverrides().addOverride(new ReplaceOverride("getCommuneById", "controllerImplementationReplacerBean"))`
 
 Noter la limitation avec le component scanning qui ne prend en compte que les classes concrètes. Pour déclencher le mécanisme, il faut explicitement déclarer son bean comme devant être collecté.
 
 Nous utilisons la version moins courante (Arbitrary Method Replacement) qui permet de complètement remplacer la méthode par une autre séquence de code : il n'est pas nécessaire que la 
 signature corresponde. Cette dernière est moins employée et il ne semble pas exister d'annotation pour la mettre en oeuvre.
 -->
-  - Utilisation : AbstractBeanDefinition -> MethodOverride -> ReplaceOverride -> MethodReplacer
 
+6. Le remplacement arbitaire de méthode ne fera pas l'affaire
+  - Fonctionnalité peu utilisée : pas de support par annotations
+  - Ne permet pas d'introduire du contrôle d'accès sur les contrôleurs (`@PreAuthorize`)
+**exception ?**
 
-```java
-@Component
-public class ControllerReplacer implements MethodReplacer{
-    @Override
-    public Object reimplement(Object obj, Method method, Object[] args) throws Throwable{
-        return executeSparqlquery(findSparqlQuery(method, args));
-    }
-
-}
-/* ... */
-AbstractBeanDefinition controllerBeanDefinition = resolveControllerBean();
-
-controllerBeanDefinition.getMethodOverrides().addOverride(new ReplaceOverride("getCommuneById", "controllerReplacer"));
-controllerBeanDefinition.prepareMethodOverrides();
-
-```
-
-**Ligne de 
-
-6. 
+7. Spring AOP
+Ce n'est pas
+8. AOP = Programmation orientée Aspect
+-quoi ?
+-usages ?
+  - AOP complements Spring IoC
+9. Implémentation dans Spring
+- Proxyfication : deux solutions :
+  - [cglib (code generation library)](https://github.com/cglib/cglib?tab=readme-ov-file#cglib-) repackagé par Spring
+<!--cglib n'est plus maintenue. Depuis 2012, la base de code est incluse dans le package org.springframework.cglib et maintenue pas Spring. La question de se départir de cglib dans Spring a donc été 
+tranchée en juillet 2023 pour la versions 6.x : c'est une trop grosse maintenance, Spring conserve sa dépendance à sa version interne de cglib : https://github.com/spring-projects/spring-framework/issues/12840#issuecomment-1633207941-->
+  - [Proxy du JDK](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Proxy.html)
+<!--Les proxys dynamiques du JDK permettent de créer à l'exécution des objets qui agissent comme des instances d'interfaces mais qui permettent de modifier l'invocation des méthodes.
+L'invocation de code spécifique se fait à travers un objet java.lang.reflect.InvocationHandler rattaché au proxy-->
+- Déclaration des pointcuts
+  - XMl ou annotations AspectJ
+- Différents types de pointcuts
+  - org.springframework.aop.Pointcut
+  - org.aopalliance.intercept.MethodInterceptor
+  - org.springframework.aop.BeforeAdvice
+<!-- https://docs.spring.io/spring-framework/reference/core/aop-api/prog.html -->
+10. Les contrôleurs avec l'AOP
+11. Spring Data ... ?
 
 - Conclusion
   - élargissement : la génération de clients, le cache
-  - Spring AOP et compilation native   
+  - Spring AOP et compilation native (ça fonctionne sur Method Replacement)
+  - Voir https://github.com/spring-projects/spring-framework/issues/32565
 - Liens
   - Projet : un tag avec injection de méthode et un tag avec Spring AOP
   - Injection de méthode dans la doc Spring : https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-method-injection.html
