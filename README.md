@@ -160,8 +160,8 @@ Vérifications:
 
   
 
-  -->
-
+ 
+# Notes
 - Trop long : 17:20
 - Montrer du code
 - raccourcir "A propos de"
@@ -169,3 +169,14 @@ Vérifications:
 - archi de Metadata
 - Systématiser l'écriture des controllers Spring -> code controller generique
 - Injection de méthode : racourcir : 1 diapo
+
+# Remarques François
+
+Découpage de la première diapo : changer dès que tu parles de l'API à refondre.
+Processus de création du code illisible : moins large et plus haut pour une police plus grosse
+Contrôleur : 2 L ? Ou enlever le U
+Spring AOP, j'aurais mis du miel de printemps AOP...
+Implémentation dans Spring : image plus grosse...
+Problème de puces sur implémentation dans Spring : peut-être la cause des interlignes en trop...
+
+ -->
