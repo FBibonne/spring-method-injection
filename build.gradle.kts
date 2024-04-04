@@ -1,5 +1,7 @@
 plugins {
     java
+    id("org.springframework.boot") version "3.2.4"
+    id("io.spring.dependency-management") version "1.1.4"
 }
 
 
@@ -13,9 +15,16 @@ java {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-    implementation("org.springframework:spring-core:6.1.5")
-    implementation("org.springframework:spring-context:6.1.5")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("bibonne.exp.oas-cache:metadata-modelapi:0.0.1-SNAPSHOT")
+    implementation("bibonne.exp.oas-cache:metadata-modelapi:0.0.1-SNAPSHOT")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
