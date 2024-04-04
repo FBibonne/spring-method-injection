@@ -13,6 +13,12 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
 }
 
+configurations {
+    compileOnly {
+        extendsFrom(configurations.annotationProcessor.get())
+    }
+}
+
 repositories {
     mavenCentral()
     mavenLocal()
@@ -23,6 +29,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("bibonne.exp.oas-cache:metadata-modelapi:0.0.1-SNAPSHOT")
     implementation("bibonne.exp.oas-cache:metadata-modelapi:0.0.1-SNAPSHOT")
+    annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

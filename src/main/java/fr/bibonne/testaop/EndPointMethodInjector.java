@@ -24,8 +24,12 @@ public record EndPointMethodInjector implements MethodInterceptor {
     public Object invoke(MethodInvocation invocation) {
         var methodName=invocation.getMethod().getName();
 
-        log.debug("Process call to {} by AOP", invocation.getMethod().getName());
+        log.debug("Process call to {} by AOP", methodName);
+        return switch (methodName){
+
+        }
         try {
+
             Optional<String> body = readBody(webRequest, invocation.getMethod(), invocation.getArguments());
             HttpHeaders headers = headers(webRequest);
             return passePlatUtility.allRequest(HttpMethod.valueOf(webRequest.getMethod()), webRequest.getServletPath(), headers, body);
