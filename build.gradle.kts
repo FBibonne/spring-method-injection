@@ -19,6 +19,7 @@ repositories {
 }
 
 dependencies {
+    compileOnly("org.projectlombok:lombok")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("bibonne.exp.oas-cache:metadata-modelapi:0.0.1-SNAPSHOT")
     implementation("bibonne.exp.oas-cache:metadata-modelapi:0.0.1-SNAPSHOT")
