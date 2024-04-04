@@ -53,7 +53,7 @@ signature corresponde. Cette dernière est moins employée et il ne semble pas e
 -->
 
 6. Le remplacement arbitaire de méthode ne fera pas l'affaire
-  - Fonctionnalité peu utilisée : pas de support par annotations
+  - Fonctionnalité peu utilisée : pas de support par annotations, pas d'API
   - Ne permet pas d'introduire du contrôle d'accès sur les contrôleurs (`@PreAuthorize`)
 **exception ?**
 
@@ -64,6 +64,7 @@ Ce n'est pas
 -usages ?
   - AOP complements Spring IoC
 9. Implémentation dans Spring
+- Spring AOP est un composant au coeur du projet Spring Framework
 - Proxyfication : deux solutions :
   - [cglib (code generation library)](https://github.com/cglib/cglib?tab=readme-ov-file#cglib-) repackagé par Spring
 <!--cglib n'est plus maintenue. Depuis 2012, la base de code est incluse dans le package org.springframework.cglib et maintenue pas Spring. La question de se départir de cglib dans Spring a donc été 
@@ -72,38 +73,45 @@ tranchée en juillet 2023 pour la versions 6.x : c'est une trop grosse maintenan
 <!--Les proxys dynamiques du JDK permettent de créer à l'exécution des objets qui agissent comme des instances d'interfaces mais qui permettent de modifier l'invocation des méthodes.
 L'invocation de code spécifique se fait à travers un objet java.lang.reflect.InvocationHandler rattaché au proxy-->
 - Déclaration des pointcuts
-  - XMl ou annotations AspectJ
+  - XMl ou annotations AspectJ ou via [une vraie API](https://docs.spring.io/spring-framework/reference/core/aop-api.html)
 - Différents types de pointcuts
   - org.springframework.aop.Pointcut
   - org.aopalliance.intercept.MethodInterceptor
   - org.springframework.aop.BeforeAdvice
 <!-- https://docs.spring.io/spring-framework/reference/core/aop-api/prog.html -->
 10. Les contrôleurs avec l'AOP
-11. Spring Data ... ?
+  - Listener :
+    - Recherche des interfaces de controllers
+    - Création des Beans advisors
+    - Création des ProxyBean des controllers
+  - MethodInterceptor
+    - Appeler la requête Sparql
+    - Convertir le résultat dans la bonne entité
+    - La retourner
+12. Spring Data ... ?
 
 - Conclusion
   - élargissement : la génération de clients, le cache
-  - Spring AOP et compilation native (ça fonctionne sur Method Replacement)
-  - Voir https://github.com/spring-projects/spring-framework/issues/32565
+  - Spring AOP et compilation native (ça fonctionne sur Method Replacement ?)
+  - Autres solutions (génération de code avec api tools generator)
+  
 - Liens
   - Projet : un tag avec injection de méthode et un tag avec Spring AOP
   - Injection de méthode dans la doc Spring : https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-method-injection.html
 
-1. Spring AOP
-  - Ce n'est pas
-  - pgm orientée aspect
-  - Proxy
-3. Use case
-  - Api contract first
-  - implémentation controlleur identiques
-4. Injection de méthode
-  - Injection de méthode Spring dans les interfaces générées de controlleurs
-    AbstractBeanDefinition -> MethodOverride -> ReplaceOverride -> MethodReplacer 
-  - Extension impossible !
-5. Application de Spring AOP
-  - Comme Spring Data, Spring security,...
-  - Code
-6. Ouverture
-  - Annotation ?
-  - Autres cas d'usage
-  - Autres solutions (génération de code avec api tools generator)
+<!--
+Améliorations:
+- Listeners en record
+- craft ControllerConfiguration
+- opérateur SPARQL pour String templates
+- factory pour les advisors ?
+- Faire tourner l'application ?
+- Finir implémenter les méthodes manquantes !
+
+Vérifications:
+- Voir https://github.com/spring-projects/spring-framework/issues/32565
+
+
+  
+
+  -->
