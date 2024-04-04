@@ -1,19 +1,21 @@
 # De l'injection de méthodes dans Spring à l'aide de Spring AOP
 
-> Spring framework propose depuis sa version 1 le concept d'injection de méthode. Celui-ci a cependant été peu mis en avant depuis et ne semble pouvoir être mis en oeuvre qu'à travers une définition xml du contexte Spring ou via l'API BeanDefinition : on n'est donc pas très emballé ! Les éditeurs du framework souhaitent-ils vraiment pousser à l'utilisation de cette fonctionnalité ? Et pourtant certains autres projets du framework l'utilisent. A travers un exemple concret où l'injection de méthode pourrait s'avérer bien utile, nous verrons comment nous pouvons mettre en oeuvre ce concept à l'aide de Spring AOP.
+---
 
-1. Présentation + Insee + Contexte
-  - Fabrice Bibonne : support aux dev sur les technologies java
-  - Insee :
-    - Produit et diffuse des statistiques pour éclairer les questions économiques
-      - **SNDIL recrute ?**
-    - Diffuse également des métadonnées comme les référentiels géographiques à travers des API
-      - ** pres Rmes extérieur en 1 phrase**
-  - Question de la refonte de _Metadata API_ :
+## A propos de
+- Fabrice Bibonne : support aux développeurs sur les technologies java
+- Insee :
+  - Produit, analyse et diffuse des informations sur l’économie et la société françaises
+  - Diffuse également des métadonnées comme les référentiels géographiques à travers des API
+- Question de la refonte de _Metadata API_ :
     - Approche contract first : **la spec OAS est une spécification**
     - Eviter la duplication de code
     - Technologies Java, Spring, Graph DB
-2. Schéma cible
+
+---
+
+## Processus de création du code
+
 ```mermaid
 graph LR
 IController["Interfaces pour les controllers"]
@@ -21,18 +23,25 @@ Implementations["Implémentation des controllers et des méthodes de service"]
 OAS --"OpenApi Generator"--> IController --"Génération souhaitable"--> Implementations
 Sparql --> Implementations
 ``` 
-**exemples de code**
 
-3. Implémentation manuelle typique d'un Controller
+---
 
-4. Systématiser l'écriture
-  - Exemple de méthode générique
-  - ~~Extensions OpenApi Generator~~
-  - Générer l'implémentation au runtime (comme Spring Data)
+## Systématiser l'écriture des controllers Spring
 
-5. Génération par "injection de méthode"
-  - Spring introduit le concept d'[Injection de méthode](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-method-injection.html), notamment [_Arbitrary Method Replacement_](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-method-injection.html#beans-factory-arbitrary-method-replacement)
-  - Cela pourrait faire l'affaire ?
+- Fonctionnement d'un controlleur (générique) :
+  - Appeler la bonne requête Sparql
+  - Convertir le résultat dans la bonne entité
+  - La retourner
+- ~~Extensions OpenApi Generator~~
+- **Générer l'implémentation au runtime (comme Spring Data)**
+
+---
+
+## Génération par "injection de méthode"
+
+- Spring introduit le concept d'[Injection de méthode](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-method-injection.html)
+  - notamment [_Arbitrary Method Replacement_](https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-method-injection.html#beans-factory-arbitrary-method-replacement)
+- Cela pourrait faire l'affaire ?
 
 <!-- 
 L'injection de méthode sert en premier lieu à l'injection de beans de scope prorotype dans un bean de scope singleton si on veut que les  beans de scope prototype soient réinstanciés à chaque appel.
@@ -52,18 +61,48 @@ Nous utilisons la version moins courante (Arbitrary Method Replacement) qui perm
 signature corresponde. Cette dernière est moins employée et il ne semble pas exister d'annotation pour la mettre en oeuvre.
 -->
 
-6. Le remplacement arbitaire de méthode ne fera pas l'affaire
+---
+
+## Le remplacement arbitraire de méthode ne fera pas l'affaire
+
   - Fonctionnalité peu utilisée : pas de support par annotations, pas d'API
   - Ne permet pas d'introduire du contrôle d'accès sur les contrôleurs (`@PreAuthorize`)
-**exception ?**
 
-7. Spring AOP
-Ce n'est pas
-8. AOP = Programmation orientée Aspect
--quoi ?
--usages ?
-  - AOP complements Spring IoC
-9. Implémentation dans Spring
+---
+
+## Spring AOP : ce n'est pas...
+
+![](https://raw.githubusercontent.com/FBibonne/aop-method-injection/aop-method-injection/img/aop.png?token=GHSAT0AAAAAACHFHR6I4UQZ2E7ED2B7YEWAZQOJ2AA)
+
+---
+
+## AOP
+
+- Programmation orientée Aspect
+  - Paradigme de programmation
+  - On s'intéresse aux aspects transverses de l'application
+  - La gestion des aspects est centralisée
+  - On court-circuite les traitements métier pour y insérer les traitements relatifs aux aspects
+
+---
+
+## A quoi ça sert ?
+
+- Traiter de manière centralisée des problèmes non métier
+- Eviter de "polluer" le code métier
+- Eviter la duplication / répétition de code
+- Par exemple : gestion des transactions, du contrôle d'accès
+
+---
+
+## Implémentation dans Spring
+
+![](https://docs.spring.io/spring-framework/reference/_images/aop-proxy-call.png)
+
+---
+
+## Implémentation dans Spring
+
 - Spring AOP est un composant au coeur du projet Spring Framework
 - Proxyfication : deux solutions :
   - [cglib (code generation library)](https://github.com/cglib/cglib?tab=readme-ov-file#cglib-) repackagé par Spring
@@ -73,13 +112,18 @@ tranchée en juillet 2023 pour la versions 6.x : c'est une trop grosse maintenan
 <!--Les proxys dynamiques du JDK permettent de créer à l'exécution des objets qui agissent comme des instances d'interfaces mais qui permettent de modifier l'invocation des méthodes.
 L'invocation de code spécifique se fait à travers un objet java.lang.reflect.InvocationHandler rattaché au proxy-->
 - Déclaration des pointcuts
-  - XMl ou annotations AspectJ ou via [une vraie API](https://docs.spring.io/spring-framework/reference/core/aop-api.html)
-- Différents types de pointcuts
-  - org.springframework.aop.Pointcut
-  - org.aopalliance.intercept.MethodInterceptor
-  - org.springframework.aop.BeforeAdvice
+  - XMl ou annotations AspectJ
+  - via [une vraie API](https://docs.spring.io/spring-framework/reference/core/aop-api.html)
+
+- Point d'entrée de l'API
+  - ProxyFactoryBean
+  - MethodInterceptor
+  - NameMatchMethodPointcutAdvisor
 <!-- https://docs.spring.io/spring-framework/reference/core/aop-api/prog.html -->
-10. Les contrôleurs avec l'AOP
+
+---
+
+## Les contrôleurs de _metadata api_ avec l'AOP
   - Listener :
     - Recherche des interfaces de controllers
     - Création des Beans advisors
@@ -87,7 +131,9 @@ L'invocation de code spécifique se fait à travers un objet java.lang.reflect.I
   - MethodInterceptor
     - Appeler la requête Sparql
     - Convertir le résultat dans la bonne entité
-    - La retourner
+    - Retourner l'entité
+
+
 12. Spring Data ... ?
 
 - Conclusion
@@ -115,3 +161,11 @@ Vérifications:
   
 
   -->
+
+- Trop long : 17:20
+- Montrer du code
+- raccourcir "A propos de"
+- jolies diapos
+- archi de Metadata
+- Systématiser l'écriture des controllers Spring -> code controller generique
+- Injection de méthode : racourcir : 1 diapo
