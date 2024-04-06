@@ -7,7 +7,7 @@
 - Insee :
   - Produit, analyse et diffuse des informations sur l’économie et la société françaises
   - Diffuse également des métadonnées comme les référentiels géographiques à travers des API
-- Question de la refonte de _Metadata API_ :
+- POC de la refonte de _Metadata API_ :
     - Approche contract first : **la spec OAS est une spécification**
     - Eviter la duplication de code
     - Technologies Java, Spring, Graph DB
@@ -23,6 +23,10 @@ Implementations["Implémentation des controllers et des méthodes de service"]
 OAS --"OpenApi Generator"--> IController --"Génération souhaitable"--> Implementations
 Sparql --> Implementations
 ``` 
+
+---
+
+## Architecture _Metadata API_
 
 ---
 
