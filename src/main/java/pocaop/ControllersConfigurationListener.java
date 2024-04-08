@@ -2,9 +2,7 @@ package pocaop;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -21,7 +19,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -60,35 +58,32 @@ public class ControllersConfigurationListener implements ApplicationListener<App
             log.error(STR."Unable to find the class for \{classMetadata.getClassName()}", e);
             return;
         }
-        var resourceFactory = new ProxyFactoryBean();
-        resourceFactory.setSingleton(true);
-        resourceFactory.setInterfaces(controllerInterface);
 
-        var advisorBeanDefinition=registerInterceptorBeanForEndpointMethods(classMetadata);
+        List<String> namesOfMethodsToIntercept=getNamesOfMethodsToIntercept(classMetadata);
+
+        log.atTrace().log(()-> STR."Declare advisor to intercept methods \{namesOfMethodsToIntercept}");
         var advisorName = STR."\{classMetadata.getClassName()}_endpointsReplacer";
-        genericApplicationContext.registerBeanDefinition(advisorName, advisorBeanDefinition);
-        resourceFactory.setInterceptorNames(advisorName);
+        genericApplicationContext.registerBeanDefinition(advisorName, getPointcutBeanDefinition(namesOfMethodsToIntercept));
         log.trace("Advisor {} registred",advisorName);
-        genericApplicationContext.registerBean(classMetadata.getClassName(), FactoryBean.class, () -> resourceFactory);
-
+        genericApplicationContext.registerBean(classMetadata.getClassName(), ControllerProxyFactoryBean.class, controllerInterface, advisorName);
     }
 
-    protected static BeanDefinition registerInterceptorBeanForEndpointMethods(AnnotationMetadata classMetadata) {
-
+    private BeanDefinition getPointcutBeanDefinition(List<String> namesOfMethodsToIntercept) {
         var advisorBeanDefinition = BeanDefinitionBuilder.genericBeanDefinition(NameMatchEnpointMethodPointcutAdvisor.class)
                 .setScope(BeanDefinition.SCOPE_SINGLETON)
                 .getBeanDefinition();
         var propertyValues = new MutablePropertyValues();
-        var namesOfMethodsToIntercept=classMetadata.getDeclaredMethods().stream()
-                .filter(ControllersConfigurationListener::isEndpointMethod)
-                .map(MethodMetadata::getMethodName)
-                .toArray(String[]::new);
         propertyValues.addPropertyValue("mappedNames", namesOfMethodsToIntercept);
         advisorBeanDefinition.setPropertyValues(propertyValues);
 
-        log.atTrace().log(()-> STR."Declare advisor to intercept methods \{Arrays.toString(namesOfMethodsToIntercept)}");
-
         return advisorBeanDefinition;
+    }
+
+    private static List<String> getNamesOfMethodsToIntercept(AnnotationMetadata classMetadata) {
+        return classMetadata.getDeclaredMethods().stream()
+                .filter(ControllersConfigurationListener::isEndpointMethod)
+                .map(MethodMetadata::getMethodName)
+                .toList();
     }
 
     private static boolean isEndpointMethod(MethodMetadata method) {
