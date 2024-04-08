@@ -3,10 +3,16 @@
 ---
 
 ## A propos de
+
 - Fabrice Bibonne : support aux développeurs sur les technologies java
 - Insee :
   - Produit, analyse et diffuse des informations sur l’économie et la société françaises
   - Diffuse également des métadonnées comme les référentiels géographiques à travers des API
+
+---
+
+## A propos de
+
 - POC de la refonte de _Metadata API_ avec approche contract first : 
   - **la spec OAS est une spécification**
   - Eviter une génération laborieuse "du swagger"
@@ -85,14 +91,8 @@
 ## Implémentation dans Spring _avec la proxyfication_
 
 - [cglib (code generation library)](https://github.com/cglib/cglib?tab=readme-ov-file#cglib-) repackagé par Spring
-<!--cglib n'est plus maintenue. Depuis 2012, la base de code est incluse dans le package org.springframework.cglib et maintenue pas Spring. La question de se départir de cglib dans Spring a donc été 
-tranchée en juillet 2023 pour la versions 6.x : c'est une trop grosse maintenance, Spring conserve sa dépendance à sa version interne de cglib : https://github.com/spring-projects/spring-framework/issues/12840#issuecomment-1633207941-->
+
 - [Proxy du JDK](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Proxy.html)
-<!--Les proxys dynamiques du JDK permettent de créer à l'exécution des objets qui agissent comme des instances d'interfaces mais qui permettent de modifier l'invocation des méthodes.
-L'invocation de code spécifique se fait à travers un objet java.lang.reflect.InvocationHandler rattaché au proxy-->
-- Déclaration des pointcuts
-  - XMl ou annotations AspectJ
-  - via [une vraie API](https://docs.spring.io/spring-framework/reference/core/aop-api.html)
 
 ---
 
@@ -117,13 +117,20 @@ public void onApplicationEvent(@NonNull ApplicationContextInitializedEvent event
 	/* ... */
 	controllerMetadatas.forEach( classMetadata -> {
 	    /* ... */
-	    genericApplicationContext.registerBeanDefinition(advisorName, getPointcutBeanDefinition(namesOfMethodsToIntercept));
-		genericApplicationContext.registerBean(classMetadata.getClassName(), ControllerProxyFactoryBean.class, controllerInterface, advisorName);
+	    genericApplicationContext.registerBeanDefinition(advisorName,
+            getPointcutBeanDefinition(namesOfMethodsToIntercept));
+		genericApplicationContext.registerBean(
+            classMetadata.getClassName(), ControllerProxyFactoryBean.class, 
+            controllerInterface, advisorName);
 		/* ..*/
 	});
 	/* ... */
 }
 ```
+
+---
+
+## Configuration
 
 ```java
 public class ControllerProxyFactoryBean extends ProxyFactoryBean {
@@ -141,7 +148,8 @@ public class ControllerProxyFactoryBean extends ProxyFactoryBean {
 ## Implémentation contrôleur générique
 
 ```java
-public Optional<?> process(@NonNull Method method, @NonNull Object[] arguments) throws ArgumentException{
+public Optional<?> process(@NonNull Method method, @NonNull Object[] arguments)
+    throws ArgumentException{
                                                                                                          
     String methodName=method.getName();                                                                                       
     Optional<QueryTemplate> queryTemplate= queryTemplateSupplier.get(methodName);                        
@@ -152,6 +160,11 @@ public Optional<?> process(@NonNull Method method, @NonNull Object[] arguments) 
     return ofNullable(unmarshaller.unmarshal(queryExecutor.execute(query), method));                     
 }                                                                                                        
 ```
+
+--- 
+
+## Implémentation contrôleur générique
+
 
 ```java
 public Optional<QueryTemplate> get(@NonNull String methodName) {              
@@ -177,7 +190,7 @@ public Optional<QueryTemplate> get(@NonNull String methodName) {
 
 ---
 
-## Conclution
+## Conclusion
 
 - Pistes d'amélioration pour le POC
   - simplifier la déclaration des _pointcuts_
