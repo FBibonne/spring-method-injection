@@ -1,5 +1,6 @@
-package fr.bibonne.testaop;
+package pocaop;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.MutablePropertyValues;
@@ -15,19 +16,21 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
 
 @Slf4j
-public class ControllersConfiguration implements ApplicationListener<ApplicationContextInitializedEvent> {
+public class ControllersConfigurationListener implements ApplicationListener<ApplicationContextInitializedEvent> {
 
-    public static final String INTERFACE_CONTROLLERS_PACKAGE_KEY = "fr.insee.apic.interface-controllers.package";
+    public static final String INTERFACE_CONTROLLERS_PACKAGE_KEY = "pocaop.interface-controllers.package";
 
     private static final Set<Class<? extends Annotation>> endpointsAnnotations = Set.of(RequestMapping.class,
             GetMapping.class, PostMapping.class, PutMapping.class, DeleteMapping.class, PatchMapping.class);
@@ -36,11 +39,10 @@ public class ControllersConfiguration implements ApplicationListener<Application
 
 
     @Override
-    public void onApplicationEvent(ApplicationContextInitializedEvent event) {
+    public void onApplicationEvent(@NonNull ApplicationContextInitializedEvent event) {
         GenericApplicationContext genericApplicationContext = (GenericApplicationContext) event.getApplicationContext();
-        interfaceControllerPackage = genericApplicationContext.getEnvironment().getProperty(INTERFACE_CONTROLLERS_PACKAGE_KEY);
-
-
+        interfaceControllerPackage = Objects.requireNonNull(genericApplicationContext.getEnvironment().getProperty(INTERFACE_CONTROLLERS_PACKAGE_KEY),
+                STR."Must provide a package to search for controllers with property \{INTERFACE_CONTROLLERS_PACKAGE_KEY}");
         controllerInterfacesForEndpointImplementation().forEach(
                 metadata -> lookupEnpointsImplementation(metadata, genericApplicationContext)
         );
@@ -55,7 +57,7 @@ public class ControllersConfiguration implements ApplicationListener<Application
             // LIKE org.springframework.data.util.AnnotatedTypeScanner.findTypes  !!
             controllerInterface = ClassUtils.forName(classMetadata.getClassName(), null);
         } catch (ClassNotFoundException e) {
-            log.error("Unable to find the class for " + classMetadata.getClassName(), e);
+            log.error(STR."Unable to find the class for \{classMetadata.getClassName()}", e);
             return;
         }
         var resourceFactory = new ProxyFactoryBean();
@@ -63,7 +65,7 @@ public class ControllersConfiguration implements ApplicationListener<Application
         resourceFactory.setInterfaces(controllerInterface);
 
         var advisorBeanDefinition=registerInterceptorBeanForEndpointMethods(classMetadata);
-        var advisorName = classMetadata.getClassName() + "_endpointsReplacer";
+        var advisorName = STR."\{classMetadata.getClassName()}_endpointsReplacer";
         genericApplicationContext.registerBeanDefinition(advisorName, advisorBeanDefinition);
         resourceFactory.setInterceptorNames(advisorName);
         log.trace("Advisor {} registred",advisorName);
@@ -78,13 +80,13 @@ public class ControllersConfiguration implements ApplicationListener<Application
                 .getBeanDefinition();
         var propertyValues = new MutablePropertyValues();
         var namesOfMethodsToIntercept=classMetadata.getDeclaredMethods().stream()
-                .filter(ControllersConfiguration::isEndpointMethod)
+                .filter(ControllersConfigurationListener::isEndpointMethod)
                 .map(MethodMetadata::getMethodName)
                 .toArray(String[]::new);
         propertyValues.addPropertyValue("mappedNames", namesOfMethodsToIntercept);
         advisorBeanDefinition.setPropertyValues(propertyValues);
 
-        log.atTrace().log(()->"Declare advisor to intercept methods "+ Arrays.toString(namesOfMethodsToIntercept));
+        log.atTrace().log(()-> STR."Declare advisor to intercept methods \{Arrays.toString(namesOfMethodsToIntercept)}");
 
         return advisorBeanDefinition;
     }
@@ -100,13 +102,16 @@ public class ControllersConfiguration implements ApplicationListener<Application
     private Stream<? extends AnnotationMetadata> findAllInterfacesRestControllerInPackage(String interfaceControllerPackage) {
         var scanner = new ClassPathScanningCandidateComponentProvider(false) {
             @Override
-            protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+            protected boolean isCandidateComponent(@NonNull AnnotatedBeanDefinition beanDefinition) {
                 var metadata = beanDefinition.getMetadata();
                 return metadata.isIndependent() && metadata.isInterface();
             }
         };
-        scanner.addIncludeFilter(new AnnotationTypeFilter(RestController.class));
+        scanner.addIncludeFilter(new AnnotationTypeFilter(Controller.class));
         var beandefs = scanner.findCandidateComponents(interfaceControllerPackage);
+        if (beandefs.isEmpty()) {
+            log.warn("No controllers found in package {}", interfaceControllerPackage);
+        }
         return beandefs.stream().map(ScannedGenericBeanDefinition.class::cast)
                 .map(ScannedGenericBeanDefinition::getMetadata);
     }

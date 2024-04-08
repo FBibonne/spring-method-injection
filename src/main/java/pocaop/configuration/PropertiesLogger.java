@@ -1,4 +1,4 @@
-package fr.bibonne.testaop;
+package pocaop.configuration;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -60,7 +60,7 @@ public class PropertiesLogger implements ApplicationListener<ApplicationEnvironm
     public static final String PROPERTY_KEY_FOR_SOURCES_IGNORED = "fr.insee.properties.log.sources.ignored";
     public static final String PROPERTY_KEY_FOR_SOURCES_SELECT = "fr.insee.properties.log.key.select";
     private static final Set<String> baseMotsCaches = Set.of("password", "pwd", "jeton", "token", "secret", "credential", "pw");
-    private static final Set<String> prefixesAffichesParDefaut= Set.of("fr.insee","logging","keycloak","spring","application","server","springdoc","management");
+    private static final Set<String> prefixesAffichesParDefaut= Set.of("pocaop","logging","keycloak","spring","application","server","springdoc","management");
     private static final Set<String> propertySourcesIgnoreesParDefaut = Set.of("systemProperties", "systemEnvironment");
     public static final PropertySelectorEnum PROPERTY_SELECTOR_PAR_DEFAUT = PropertySelectorEnum.PREFIX;
     private static Set<String> prefixForSelectedProps;
@@ -95,11 +95,12 @@ public class PropertiesLogger implements ApplicationListener<ApplicationEnvironm
                 .forEach(key-> props.append(key).append(" = ")
                         .append(resoutValeurAvecMasquePwd(key, environment))
                         .append(System.lineSeparator()));
-        props.append("============================================================================");
+        props.append("===============================================================================================");
         props.insert(0, """
+                
                 ===============================================================================================
                                                 Valeurs des properties pour :
-                %s                                        
+                %s
                 ===============================================================================================
                 """.formatted(this.propertySourceNames.stream().reduce("",(l, e)->l+System.lineSeparator()+"- "+e )));
         log.info(props.toString());
