@@ -25,7 +25,7 @@ graalvmNative {
         all {
             jvmArgs("--enable-preview")
         }
-    }
+   }
 }
 
 

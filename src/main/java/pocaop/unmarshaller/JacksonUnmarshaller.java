@@ -1,6 +1,7 @@
 package pocaop.unmarshaller;
 
 import bibonne.exp.oascache.metadata.api.model.Commune;
+import bibonne.exp.oascache.metadata.api.model.Departement;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.*;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.openapitools.jackson.nullable.JsonNullableModule;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.stereotype.Component;
 import pocaop.internal.Unmarshaller;
 
@@ -20,6 +22,7 @@ import java.util.List;
 
 @Component
 @Slf4j
+@RegisterReflectionForBinding(classes = {Commune.class, Departement.class})
 public record JacksonUnmarshaller(CsvMapper csvMapper) implements Unmarshaller {
 
     public JacksonUnmarshaller() {
@@ -52,16 +55,17 @@ public record JacksonUnmarshaller(CsvMapper csvMapper) implements Unmarshaller {
         CsvSchema schema = CsvSchema.emptySchema().withHeader();
         ObjectReader reader = csvMapper.readerFor(returnedType.typeForMapping()).with(schema);
         List<?> results;
-        try(MappingIterator<?> mappingIterator=reader.readValues(csv)) {
-            results=mappingIterator.readAll();
+        try (MappingIterator<?> mappingIterator = reader.readValues(csv)) {
+            results = mappingIterator.readAll();
         } catch (IOException e) {
             log.error(STR."""
-While reading
-\{csv}
-MESSAGE : \{e.getMessage()}
-===> RETURN WILL BE EMPTY""");
-            return returnedType.isCollection()? List.of():null;
+            While reading
+            \{csv}
+            MESSAGE : \{e.getMessage()}
+            ===> RETURN WILL BE EMPTY
+            """);
+            return returnedType.isCollection() ? List.of() : null;
         }
-        return returnedType.isCollection()? results:results.getFirst();
+        return returnedType.isCollection() ? results : results.getFirst();
     }
 }
