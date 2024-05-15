@@ -59,6 +59,8 @@ public class ControllersConfigurationListener implements ApplicationListener<App
             return;
         }
 
+        log.atInfo().log(()->STR."Add controller interface : \{classMetadata.getClassName()}");
+
         List<String> namesOfMethodsToIntercept=getNamesOfMethodsToIntercept(classMetadata);
 
         log.atTrace().log(()-> STR."Declare advisor to intercept methods \{namesOfMethodsToIntercept}");
