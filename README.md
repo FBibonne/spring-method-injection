@@ -219,16 +219,20 @@ flowchart LR
     subgraph Code
         I1[Intruction 1]
         I2[Intruction 2]
-        method[Method call]
-        I3[Intruction 3]
+        subgraph AOP Proxy
+            extra[extra behavior]
+            method[instruction 3 : Method call]
+        end
+        I4[Intruction 4]
+        I5[...]
     end
     subgraph Aspect
-        Pointcut["Pointcut : 'call()'"]
         Advice
+        Pointcut["Pointcut : 'call()'"]
     end
     
     Pointcut--"Join Point"--> method
-    
+    Advice--"woven aspect"-->extra
     Aspect --"Weaving"--> Code
 ```
 
