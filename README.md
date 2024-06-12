@@ -209,3 +209,27 @@ QR code
 
 MERCI !
 
+---
+
+## Annexe : schema pour AOP avec concepts
+
+```mermaid
+flowchart LR
+    
+    subgraph Code
+        I1[Intruction 1]
+        I2[Intruction 2]
+        method[Method call]
+        I3[Intruction 3]
+    end
+    subgraph Aspect
+        Pointcut["Pointcut : 'call()'"]
+        Advice
+    end
+    
+    Pointcut--"Join Point"--> method
+    
+    Aspect --"Weaving"--> Code
+```
+
+---
