@@ -11,4 +11,4 @@
 
 - https://www.graalvm.org/22.0/reference-manual/native-image/DynamicProxy/
 - https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Proxy.html
-- 
+- InfoQ book dynamic proxies
