@@ -1,1 +1,1 @@
-rootProject.name = "test-aop"
+rootProject.name = "test-method-injection"
