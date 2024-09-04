@@ -11,7 +11,7 @@ group = "bibonne.exp"
 version = "0.0.1-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_22
 }
 
 configurations {
@@ -45,16 +45,22 @@ tasks.withType<JavaExec>().configureEach {
 
 repositories {
     mavenCentral()
+    maven{
+        url = uri("https://maven.pkg.github.com/FBibonne/Properties-Logger")
+        credentials{
+            // set the property github.username in $GRADLE_HOME/gradle.properties file like this `github.username='FBibonne'`
+            username = providers.gradleProperty("github.username").toString()
+            // set the property github.user_token in $GRADLE_HOME/gradle.properties file like this `github.user_token='ghp_****'`
+            password = providers.gradleProperty("github.user_token").toString()
+        }
+    }
     mavenLocal()
 }
 
 dependencies {
     compileOnly("org.projectlombok:lombok")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("bibonne.exp.oas-cache:metadata-modelapi:0.0.1-SNAPSHOT")
-    implementation("bibonne.exp.oas-cache:metadata-interfaceapi:0.0.1-SNAPSHOT")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("fr.insee:boot-properties-logger-starter:1.0.0-SNAPSHOT")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
