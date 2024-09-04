@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 
 public record RequestProcessor() {
     public ResponseEntity<String> processRequest(Method method, Object[] args) {
-        String process = STR."\{httpMethod(method)}\{entity(method)} with arguments \{arguments(method, args)}";
+        String process = STR."\{httpMethod(method)} \{entity(method)} with arguments \{arguments(method, args)}";
         return ResponseEntity.ok(process);
     }
 

@@ -3,13 +3,22 @@ package poc.methodinjection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.ResolvableType;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.ClassUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public record BeanDefinitionProviderWithJdkProxy(RequestProcessor requestProcessor) implements BeanDefinitionProvider {
@@ -21,7 +30,27 @@ public record BeanDefinitionProviderWithJdkProxy(RequestProcessor requestProcess
         if (controllerInterface == null) {
             return Optional.empty();
         }
-        InvocationHandler handler = this::processRequest;
+        final Set<String> controllerMethods = extractEndpointsMethods(controllerInterface);
+        InvocationHandler handler = new InvocationHandler() {
+
+            final Object support = new Object();
+
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) {
+                if (controllerMethods.contains(method.getName())) {
+                    ResponseEntity<String> response = requestProcessor.processRequest(method, args);
+                    log.info(response.getBody());
+                    return response;
+                }
+                return switch (method.getName()){
+                    case "toString" -> STR."\{classMetadata.getClassName()}@\{System.identityHashCode(proxy)}";
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "equals" -> args.length > 1 && args[0] == proxy;
+                    case "getClass" -> ;
+                    default -> invokeOriginalMethod(support, method, args);
+                };
+            }
+        }
         BeanDefinition beanDefinition = BeanDefinitionBuilder.rootBeanDefinition(controllerInterface,
                 () -> Proxy.newProxyInstance(BeanDefinitionProviderWithJdkProxy.class.getClassLoader(), new Class[]{controllerInterface.getRawClass()}, handler)
         ).setScope(BeanDefinition.SCOPE_SINGLETON)
@@ -29,10 +58,27 @@ public record BeanDefinitionProviderWithJdkProxy(RequestProcessor requestProcess
         return Optional.of(new BeanDefinitionWithName(endpointName, beanDefinition));
     }
 
-    private Object processRequest(Object ignored, Method method, Object[] args) {
-        ResponseEntity<String> response = requestProcessor.processRequest(method, args);
-        log.info(response.getBody());
-        return response;
+    private static Set<String> extractEndpointsMethods(ResolvableType controllerInterface) {
+        return Arrays.stream(controllerInterface.getRawClass().getMethods())
+                .filter(method -> MergedAnnotations.from(method).isPresent(RequestMapping.class))
+                .map(Method::getName)
+                .collect(Collectors.toSet());
+    }
+
+    private Object processRequest(Object proxy, Method method, Object[] args) {
+        if (methodsOfClassObject.contains(method.getName())){
+            return invokeOriginalMethod(proxy, method, args);
+        }
+
+    }
+
+    private static Object invokeOriginalMethod(Object proxy, Method method, Object[] args) {
+        try {
+            return method.invoke(proxy, args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            log.debug(STR."Error while invoking \{method.getName()}", e);
+            return null;
+        }
     }
 
 

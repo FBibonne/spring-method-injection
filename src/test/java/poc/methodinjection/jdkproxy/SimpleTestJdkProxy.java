@@ -6,6 +6,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 import poc.methodinjection.BeanDefinitionProviderWithJdkProxy;
 import poc.methodinjection.RegistrarForBeansWithInjectedMethods;
@@ -15,13 +17,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = TestJdkProxy.JdkProxyTestConfiguration.class)
+@SpringBootTest(classes = SimpleTestJdkProxy.JdkProxyTestConfiguration.class, properties = "pocaop.interface-controllers.package=example.controllers")
 @AutoConfigureMockMvc
-class TestJdkProxy {
+class SimpleTestJdkProxy {
 
     @Test
     void testJdkProxy(@Autowired MockMvc mvc) throws Exception {
-        mvc.perform(get("/communes/33529")).andExpect(status().isOk()).andExpect(content().string("GET Commune with arguments [id = 33529]"));
+        mvc.perform(get("/communes/33529"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("[GET] Commune with arguments [code = 33529]"));
     }
 
     @Configuration(proxyBeanMethods = false)
@@ -31,6 +35,14 @@ class TestJdkProxy {
         public RegistrarForBeansWithInjectedMethods registrarForBeansWithInjectedMethods(){
             return new RegistrarForBeansWithInjectedMethods( new BeanDefinitionProviderWithJdkProxy(new RequestProcessor()));
         }
+
+        @Bean
+        public SecurityFilterChain httpSecurity(HttpSecurity http) throws Exception {
+            return http.authorizeHttpRequests(authorize -> authorize
+                    .anyRequest().permitAll()
+            ).build();
+        }
+
     }
 
 }
