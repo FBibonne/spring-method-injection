@@ -7,8 +7,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.InvocationHandler;
@@ -43,14 +41,13 @@ public record BeanDefinitionProviderWithJdkProxy(RequestProcessor requestProcess
                     return response;
                 }
                 return switch (method.getName()){
-                    case "toString" -> STR."\{classMetadata.getClassName()}@\{System.identityHashCode(proxy)}";
+                    case "toString" -> STR."\{controllerInterface.getRawClass().getName()}&\{proxy.getClass().getName()}";
                     case "hashCode" -> System.identityHashCode(proxy);
-                    case "equals" -> args.length > 1 && args[0] == proxy;
-                    case "getClass" -> ;
+                    case "equals" -> args.length>0 && proxy==args[0];
                     default -> invokeOriginalMethod(support, method, args);
                 };
             }
-        }
+        };
         BeanDefinition beanDefinition = BeanDefinitionBuilder.rootBeanDefinition(controllerInterface,
                 () -> Proxy.newProxyInstance(BeanDefinitionProviderWithJdkProxy.class.getClassLoader(), new Class[]{controllerInterface.getRawClass()}, handler)
         ).setScope(BeanDefinition.SCOPE_SINGLETON)
@@ -63,13 +60,6 @@ public record BeanDefinitionProviderWithJdkProxy(RequestProcessor requestProcess
                 .filter(method -> MergedAnnotations.from(method).isPresent(RequestMapping.class))
                 .map(Method::getName)
                 .collect(Collectors.toSet());
-    }
-
-    private Object processRequest(Object proxy, Method method, Object[] args) {
-        if (methodsOfClassObject.contains(method.getName())){
-            return invokeOriginalMethod(proxy, method, args);
-        }
-
     }
 
     private static Object invokeOriginalMethod(Object proxy, Method method, Object[] args) {
