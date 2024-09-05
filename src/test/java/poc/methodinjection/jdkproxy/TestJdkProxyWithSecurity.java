@@ -45,9 +45,9 @@ class TestJdkProxyWithSecurity {
     @EnableMethodSecurity(securedEnabled = true)
     static class JdkProxySecurityTestConfiguration {
 
-        @Bean
+        @Bean(RegistrarForBeansWithInjectedMethods.BEAN_NAME)
         public RegistrarForBeansWithInjectedMethods registrarForBeansWithInjectedMethods(){
-            return new RegistrarForBeansWithInjectedMethods( new BeanDefinitionProviderWithJdkProxy(new RequestProcessor()));
+            return new RegistrarForBeansWithInjectedMethods( new BeanDefinitionProviderWithJdkProxy());
         }
 
     }

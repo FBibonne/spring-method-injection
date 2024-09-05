@@ -39,9 +39,9 @@ class JdkProxySimpleTest {
     @Configuration(proxyBeanMethods = false)
     static class JdkProxyTestConfiguration{
 
-        @Bean
+        @Bean(RegistrarForBeansWithInjectedMethods.BEAN_NAME)
         public RegistrarForBeansWithInjectedMethods registrarForBeansWithInjectedMethods(){
-            return new RegistrarForBeansWithInjectedMethods( new BeanDefinitionProviderWithJdkProxy(new RequestProcessor()));
+            return new RegistrarForBeansWithInjectedMethods( new BeanDefinitionProviderWithJdkProxy());
         }
 
         @Bean

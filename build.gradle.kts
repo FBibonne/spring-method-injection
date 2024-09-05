@@ -66,7 +66,7 @@ dependencies {
     compileOnly("org.springframework:spring-aop")
     compileOnly("org.springframework:spring-context")
     compileOnly("org.springframework.boot:spring-boot-starter-logging")
-    testImplementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     testImplementation("org.springframework.boot:spring-boot-starter-security")
     testImplementation("fr.insee:boot-properties-logger-starter:1.0.0-SNAPSHOT")
     annotationProcessor("org.projectlombok:lombok")

@@ -9,22 +9,32 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ScannedGenericBeanDefinition;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
 @Slf4j
 public class RegistrarForBeansWithInjectedMethods implements BeanDefinitionRegistryPostProcessor, EnvironmentAware {
+
+    public static final String BEAN_NAME = "registrarForBeans";
 
     public static final String INTERFACE_CONTROLLERS_PACKAGE_KEY = "pocaop.interface-controllers.package";
 
@@ -86,6 +96,47 @@ public class RegistrarForBeansWithInjectedMethods implements BeanDefinitionRegis
             return ResolvableType.forClass(ClassUtils.forName(Objects.requireNonNull(metadata).getClassName(), null));
         } catch (ClassNotFoundException e) {
             log.error(STR."Unable to find the class for \{metadata.getClassName()}", e);
+            return null;
+        }
+    }
+
+    public Object proxyProviderForJdkProxy(ResolvableType controllerInterface){
+        final Set<String> controllerMethods = extractEndpointsMethods(controllerInterface);
+        final RequestProcessor requestProcessor = new RequestProcessor();
+        InvocationHandler handler = new InvocationHandler() {
+
+            final Object support = new Object();
+
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) {
+                if (controllerMethods.contains(method.getName())) {
+                    ResponseEntity<String> response = requestProcessor.processRequest(method, args);
+                    log.info(response.getBody());
+                    return response;
+                }
+                return switch (method.getName()){
+                    case "toString" -> STR."\{controllerInterface.getRawClass().getName()}&\{proxy.getClass().getName()}";
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "equals" -> args.length>0 && proxy==args[0];
+                    default -> invokeOriginalMethod(support, method, args);
+                };
+            }
+        };
+        return Proxy.newProxyInstance(BeanDefinitionProviderWithJdkProxy.class.getClassLoader(), new Class[]{controllerInterface.getRawClass()}, handler);
+    }
+
+    private static Set<String> extractEndpointsMethods(ResolvableType controllerInterface) {
+        return Arrays.stream(controllerInterface.getRawClass().getMethods())
+                .filter(method -> MergedAnnotations.from(method).isPresent(RequestMapping.class))
+                .map(Method::getName)
+                .collect(Collectors.toSet());
+    }
+
+    private static Object invokeOriginalMethod(Object proxy, Method method, Object[] args) {
+        try {
+            return method.invoke(proxy, args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            log.debug(STR."Error while invoking \{method.getName()}", e);
             return null;
         }
     }
