@@ -62,6 +62,7 @@ val propertiesLoggerVersion = "1.0.1"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("fr.insee:boot-properties-logger-starter:$propertiesLoggerVersion")
 
     annotationProcessor("org.projectlombok:lombok")
 
@@ -73,7 +74,6 @@ dependencies {
     compileOnly("org.springframework.boot:spring-boot-starter-logging")
 
     testImplementation("org.springframework.boot:spring-boot-starter-security")
-    testImplementation("fr.insee:boot-properties-logger-starter:$propertiesLoggerVersion")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
 

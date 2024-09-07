@@ -1,4 +1,4 @@
-package poc.methodinjection;
+package poc.methodinjection.jdkproxy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -18,6 +18,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.*;
+import poc.methodinjection.BeanDefinitionProvider;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;

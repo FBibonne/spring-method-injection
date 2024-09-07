@@ -1,4 +1,4 @@
-package poc.methodinjection;
+package poc.methodinjection.aop;
 
 import org.springframework.aop.framework.ProxyFactoryBean;
 

@@ -1,4 +1,4 @@
-package poc.methodinjection;
+package poc.methodinjection.aop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.MutablePropertyValues;
@@ -6,20 +6,21 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
-import org.springframework.util.ClassUtils;
-import poc.methodinjection.aop.NameMatchEnpointMethodPointcutAdvisor;
+import poc.methodinjection.BeanDefinitionProvider;
+import poc.methodinjection.BeanDefinitionWithName;
+import poc.methodinjection.jdkproxy.RegistrarForBeansWithInjectedMethods;
 
 import java.util.List;
 import java.util.Optional;
 
-import static poc.methodinjection.RegistrarForBeansWithInjectedMethods.ENDPOINTS_ANNOTATIONS;
+import static poc.methodinjection.jdkproxy.RegistrarForBeansWithInjectedMethods.ENDPOINTS_ANNOTATIONS;
 
 @Slf4j
 public record BeanDefinitionProviderWithAOP() implements BeanDefinitionProvider {
     @Override
     public Optional<BeanDefinitionWithName> provide(AnnotationMetadata classMetadata) {
 
-        var controllerInterface=RegistrarForBeansWithInjectedMethods.findResolvableType(classMetadata);
+        var controllerInterface= RegistrarForBeansWithInjectedMethods.findResolvableType(classMetadata);
 
         log.atInfo().log(()->STR."Add controller interface : \{classMetadata.getClassName()}");
 

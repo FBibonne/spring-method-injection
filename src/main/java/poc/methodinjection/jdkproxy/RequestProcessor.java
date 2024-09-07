@@ -1,4 +1,4 @@
-package poc.methodinjection;
+package poc.methodinjection.jdkproxy;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.MergedAnnotations;

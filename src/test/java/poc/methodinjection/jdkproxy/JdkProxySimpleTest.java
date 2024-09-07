@@ -10,9 +10,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
-import poc.methodinjection.BeanDefinitionProviderWithJdkProxy;
-import poc.methodinjection.RegistrarForBeansWithInjectedMethods;
-import poc.methodinjection.RequestProcessor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

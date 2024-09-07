@@ -1,10 +1,12 @@
-package poc.methodinjection;
+package poc.methodinjection.jdkproxy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.core.type.AnnotationMetadata;
+import poc.methodinjection.BeanDefinitionProvider;
+import poc.methodinjection.BeanDefinitionWithName;
 
 import java.util.Optional;
 
